@@ -1,0 +1,85 @@
+- name: install nagios packages
+  apt:
+    name:
+      - wget
+      - unzip
+      - curl
+      - openssl
+      - build-essential
+      - libgd-dev
+      - libssl-dev
+      - libapache2-mod-php8.1
+      - php-gd
+      - php
+      - apache2
+      - dc
+      - make
+      - snmp
+      - libnet-snmp-perl
+      - autoconf
+      - gettext
+      - python3
+      - python3-pip
+    state: latest
+
+- name: downloading nagios core
+  unarchive:
+    src: https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.6.tar.gz
+    dest: /tmp
+    remote_src: yes
+    mode: 0777
+    owner: root
+    group: root
+
+- name: install nagios core
+  shell:
+    cd /tmp/nagioscore-**
+    ./configure
+    sudo make all
+    sudo make install-group-users
+    sudo usermod -a -G www-data
+    sudo make install
+    sudo make install-commandmode
+    sudo make install-config
+    sudo make install-webconf
+    sudo a2enmod rewrite
+    sudo a2enmod cgi
+
+- name: download nagios-plugins
+  unarchive:
+    src: https://nagios-plugins.org/download/nagios-plugins-2.3.3.tar.gz
+    dest: /tmp
+    remote_src: yes
+    mode: 0777
+    owner: root
+    group: root
+
+- name: install nagios-plugins
+  shell:
+    cd /tmp/nagios-plugins*
+    sudo ./tools/setup
+    sudo ./configure --with-nagios-user=naigos --with-nagios-group=nagios --with-openssl
+    sudo make
+    sudo make install
+
+- name: install passlib
+  pip:
+    name: passlib
+
+- name: restart nagios service
+  service:
+    name: nagios
+    state: restarted
+    enabled: true
+
+- name: restart apache2 service
+  service:
+    name: apache2
+    state: restarted
+    enabled: true
+
+- name: restart mariadb service
+  service:
+    name: mariadb
+    state: restarted
+    enabled: true

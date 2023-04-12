@@ -1,0 +1,39 @@
+
+- name: install apache and php
+  tags: apache,apache2,ubuntu
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-php
+    state: latest
+
+- name: install mariadb package
+  tags: db, mariadb,ubuntu
+  apt:
+    name: mariadb-server
+    state: latest
+
+- name: install prometheus
+  tags: inst_prome
+  apt:
+    name: prometheus
+    state: latest
+
+- name: open 9090 port
+  tags: open_port
+  shell:
+    sudo ufw allow 9090/tcp
+
+- name: restart apache2 service
+  tags: apache_serv
+  service:
+    name: apache2
+    state: restarted
+    enabled: true
+
+- name: restart prometheus
+  tags: res_serv
+  service:
+    name: prometheus
+    state: restarted
+    enabled: true
